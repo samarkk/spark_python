@@ -1,0 +1,71 @@
+# to run this in a terminal at location /home/cloudera
+#  ./testkfp.sh findata/cm 2016 JAN 200 1
+# go to hive and empty stocksagg and stocksaggckpt
+# start writing to kafka topic and start this in pyspark console
+
+from pyspark.sql.functions import *
+
+spark = SparkSession.builder.appName('StructuredKafkaWordCount') \
+.config('spark.warehouse.dir','/apps/hive/warehouse') \
+.config('spark.sql.shuffle.partitions', 2) \
+.enableHiveSupport().getOrCreate()
+
+spark.sparkContext.setLogLevel('ERROR')
+
+from pyspark.sql.functions import *
+
+stockQuotes = spark.readStream.format("kafka")\
+.option("kafka.bootstrap.servers", "localhost:9092") \
+.option("subscribe", "nsecmd") \
+.option("startingffsets", "earliest") \
+.option("failOnDataLoss", "false") \
+.load() \
+.select("KEY", "VALUE", "TIMESTAMP")
+
+
+splitCol = split('VALUE', ',')
+
+stocksDF = stockQuotes.withColumn('symbol', splitCol.getItem(0)) \
+.withColumn('clspr', splitCol.getItem(5)) \
+.withColumn('qty', splitCol.getItem(8)) \
+.withColumn('vlu', splitCol.getItem(9)) \
+.selectExpr('symbol', 'qty', 'vlu', 'clspr', 'timestamp as tstamp')
+
+stocksAggregatedWithWindow = stocksDF.withWatermark('tstamp', '30 seconds') \
+.groupBy('symbol', 
+window("tstamp", "10 seconds", "5 seconds").alias('wdw')) \
+.agg(sum('qty').cast('long').alias('totqty'), avg('qty').alias('avgqty'),
+sum('vlu').alias('sumval'), avg('vlu').alias('avgval'), 
+min('clspr').cast('double').alias('mincls'), max('clspr').cast('double').alias('maxcls')) \
+.select("symbol", "wdw", "avgqty", "avgval", "totqty", "sumval", "mincls", "maxcls").coalesce(1)
+
+stocksAggregatedWithWindow.printSchema()
+
+stocksParquetQuery = stocksAggregatedWithWindow.writeStream \
+.format("parquet") \
+.option("path", "hdfs://localhost:8020/user/cloudera/stocksagg") \
+.option("checkpointLocation", "hdfs://localhost:8020/user/cloudera/stocksaggckpt")
+
+pq = stocksParquetQuery.start()
+
+# stocksAggQuery.stop()
+# streaming query monitoring, querying options
+# query.id()          # get the unique identifier of the running query that persists across restarts from checkpoint data
+
+# query.runId()       # get the unique id of this run of the query, which will be generated at every start/restart
+
+# query.name()        # get the name of the auto-generated or user-specified name
+
+# query.explain()   # print detailed explanations of the query
+
+# query.stop()      # stop the query
+
+# query.awaitTermination()   # block until query is terminated, with stop() or with error
+
+# query.exception()       # the exception if the query has been terminated with error
+
+# query.recentProgress()  # an array of the most recent progress updates for this query
+
+query.lastProgress()    # the most recent progress update of this streaming query
+
+
