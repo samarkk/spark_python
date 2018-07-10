@@ -1,0 +1,33 @@
+// to start connect
+sudo /usr/bin/connect-distributed   -daemon /etc/kafka/connect-distributed.properties
+// to see kafka-connect is started do
+curl http://localhost:8083
+// to see the installed connector plugins do
+curl http://localhost:8083/connector-plugins
+// to create a kafka file connector
+echo '{"name":"ntkc","config":{"connector.class":"FileStreamSource","file":"/home/cloudera/distdemo.txt", "topic":"ntkt"}}' | curl -X POST -d @- http://localhost:8083/connectors --header "content-Type:application/json"
+// the connector created above is tkc - test kafka connector - it will write to the topic kctt - kafka connect test topic
+// will need to create topic kctt if topic auto creation is disabled
+kafka-topics --zookeeper localhost:2181 --create --topic kctt --replication-factor 1 --partitions 1
+// what the above line does is creates a connector between the file and the topic
+// so if one consumes the topic
+kafka-console-consumer --topic kctt --bootstrap-server localhost:9092 --from-beginning
+// and if one were to pipe additional lines into the file we should see them appearing in the topic automatically
+// to delete the connector this is what we have to do
+curl -X DELETE http://localhost:8083/connectors/test-kafka-connect
+// so till the connector is there and connect-distribued is working we will have the topic getting populated from the source
+// to test that this is what i did
+for x in {1..100};do echo "blah blah $x" >> /home/cloudera/distdemo.txt;done
+// the topic kctt was appended along side
+// to create a file sink connector do following
+ echo '{"name":"tdkc","config":{"connector.class":"FileStreamSink","file":"/home/cloudera/copy-of-distdemo.txt", "topics":"kctt"}}' | curl -X POST -d @- http://localhost:8083/connectors --header "content-Type:application/json"
+// tdkc - test dump kafka connect
+// so we have both the source and stream connectors active
+// and after this issued this command
+for x in {101..110};do echo "nblah nblah $x" >> distdemo.txt;done
+// and both the topic was appended with the new lines and the file was updated to include the new lines
+
+echo '{"name":"mysql-login-connector", "config":{"connector.class":"JdbcSourceConnector","connection.url":"jdbc:mysql://127.0.0.1:3306/testdb?user=root&password=cloudera","mode":"timestamp","table.whitelist":"login","validate.non.null":false,"timestamp.column.name":"login_time","topic.prefix":"mysql."}}'| curl -X POST -d @- http://localhost:8083/connectors --header "content-Type:application/json"
+
+echo '{"name":"mysql-sinklogin-connector", "config":{"connector.class":"JdbcSinkConnector","connection.url":"jdbc:mysql://127.0.0.1:3306/testdb?user=root&password=cloudera","table.whitelist":"sinklogin", "validate.non.null":false,"timestamp.column.name":"login_time","insert.mode":"insert","topics":"mysql.login"}}'| curl -X POST -d @- http://localhost:8083/connectors --header "content-Type:application/json"
+

@@ -1,0 +1,220 @@
+kafka-topics --zookeeper localhost:2181 --list
+kafka-topics --zookeeper localhost:2181  --create --topic nsecmd  --replication-factor 1 --partitions 1
+kafka-topics --zookeeper localhost:2181  --delete --topic salestopic
+kafka-console-producer --broker-list localhost:9092 --topic
+
+kafka-console-consumer --bootstrap-server localhost:9092 --topic --from-beginning 
+
+kafka-console-consumer --bootstrap-server localhost:9092 \
+    --topic wci\
+    --from-beginning \
+    --formatter kafka.tools.DefaultMessageFormatter \
+    --property print.key=true \
+    --property print.value=true \
+    --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+    --property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer
+// to alter a topic - add partitions
+kafka-topics --zookeeper localhost:2181 --alter --topic my-topic --partitions 16
+-- reducing partitions is not allowed as that would involve deleting topic messages
+// to see details for all topics and then for a specific topic
+kafka-topics --zookeeper localhost:2181 --describe
+kafka-topics --zookeeper localhost:2181 --describe  --topic nsecmdpart
+// to find topics that have configuratoin overrides add --topics--with-overrides
+// to find partitions that have problems add --under-replicated partitions  
+// to find partitions that do not have a leader add --unavailable-partitions
+
+// kafka consumer groups
+// for old zookeeper based consumer groups
+kafka-consumer-groups --zookeeper localhost:2181 --list
+// for new consumer groups
+ kafka-consumer-groups --bootstrap-server localhost:9092 --list
+--for description add --group somegroup --describe
+// delete consumer groups
+possible only for old consumer clients
+will remove the entire group including all offsets for the topics the group is conuming
+all conumsers in the group should be shut down to carry out this
+
+kafka-consumer-groups --zookeeper localhost:2181 --delete --group somegroup
+
+// also possible to delete offsets for a single topic the group is consuming
+kafka-consumer-groups --zookeeper localhost:2181 --delete --group somegroup --topic sometopic
+
+// export offsets for a conumser group to a file
+kafka-run-class  kafka.tools.ExportZkOffsets --zkconnect localhost:2181  --group console-consumer-88042 --output-file eoffsets
+cat eoffsets
+
+// for importing offsets run ImportZkOffsets, group is not needed as its info is embedded in the file
+
+// to override topic configuration details
+kafka-configs.sh --zookeeper zoo1.example.com:2181/kafka-cluster
+--alter --entity-type topics --entity-name <topic name>
+--add-config <key>=<value>[,<key>=<value>...]
+example
+kafka-configs.sh --zookeeper zoo1.example.com:2181/kafka-cluster
+--alter --entity-type topics --entity-name my-topic --add-config
+retention.ms=3600000
+Updated config for topic: "my-topic".
+
+// describe configuration overrides
+kafka-configs.sh --zookeeper zoo1.example.com:2181/kafka-cluster
+--describe --entity-type topics --entity-name my-topic
+Configs for topics:my-topic are
+retention.ms=3600000,segment.ms=3600000
+
+// to delete a configuration override
+kafka-configs.sh --zookeeper zoo1.example.com:2181/kafka-cluster
+--alter --entity-type topics --entity-name my-topic
+--delete-config retention.ms
+Updated config for topic: "my-topic
+
+// to make the cluster controller select the ideal leader for partitions trigger preferred replica election
+kafka-preferred-replica-election --zookeeper localhost:2181
+
+// on  a cluster with a large number of topics and partitions since output may be larger than 1 mb and may fail to write
+// to a zookeeper node, need to break it up into json files specifiyng topics and partitions  and give that file as an 
+// argument with option --path-to-json-file
+
+
+// reassigning partitions 
+// in two steps - first a json file specifying topics
+kafka-reassign-partitions.sh --zookeeper
+zoo1.example.com:2181/kafka-cluster --generate
+--topics-to-move-json-file topics.json --broker-list 0,1
+
+this will generate on standard output two json files - showing current and proposed assigment - the two can be saved and then the proposed reassignment can be executed
+kafka-reassign-partitions.sh --zookeeper
+zoo1.example.com:2181/kafka-cluster --execute
+--reassignment-json-file reassign.json
+
+// the reassign partitions can be used to increase the replication factor
+
+grep 'www-b5.proxy.aol.com' streaming_logs/apachelog1.txt | cut -d ' ' -f 10 | paste -d '+' -s | bc
+
+ kafka-run-class kafka.tools.GetOffsetShell  --broker-list localhost:9092 --topic salestopic
+-- need the log file to dump segments of the file
+kafka-run-class kafka.tools.DumpLogSegments --deep-iteration --print-data-log --files wordcount-input-0/00000000000000000000.log
+
+--use the dump log segments to carry out index check
+kafka-run-class kafka.tools.DumpLogSegments  --files /var/lib/kafka/kctt-0/00000000000000000000.index,/var/lib/kafka/kctt-0/00000000000000000000.log --print-data-log --index-sanity-check
+Dumping /var/lib/kafka/kctt-0/00000000000000000000.index
+
+// see consumer offsets committed for  cluster's consumer groups
+kafka-console-consumer --bootstrap-server localhost:9092 --topic __consumer_offsets --formatter 'kafka.coordinator.group.GroupMetadataManager$OffsetsMessageFormatter' --max-messages 10
+
+// removing kafka topics manually
+shut down all brokers
+remove zookeeper node /brokers/topics/TOPICNAME if it has child nodes they must be deleted first
+remove partition directories from log directories of each broker
+restart all brokers
+
+
+---------------------------------------------------------------------------
+running kafka avro producer and consumer which is going to sessionize clicks
+----------------------------------------------------------------------------
+project /home/cloudera/kafkaexamples
+// delete and create the topics
+kafka-topics --zookeeper localhost:2181 -delete --topic clicks
+kafka-topics --zookeeper localhost:2181 -delete --topic sessionized_clicks
+
+kafka-topics --zookeeper localhost:2181  --create --topic clicks  --replication-factor 1 --partitions 1
+kafka-topics --zookeeper localhost:2181  --create --topic sessionized_clicks  --replication-factor 1 --partitions 1
+
+a - run the producer to send some events to the topic clicks
+java -cp target/uber-ClickstreamGenerator-1.0-SNAPSHOT.jar com.skk.training.producer.avroclicks.AvroClicksProducer 100 http://localhost:8081  
+b - run the consumer to sessionize
+java -cp target/uber-ClickstreamGenerator-1.0-SNAPSHOT.jar com.skk.training.consumer.avroclicks.AvroClicksSessionizer 
+
+c - tmux and console consumers in two windows
+kafka-console-consumer --bootstrap-server localhost:9092 --topic sessionized_clicks --from-beginning
+kafka-console-consumer --bootstrap-server localhost:9092 --topic clicks --from-beginning
+
+----------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------
+running spark kafka real time sales ingestion 
+----------------------------------------------------------------------------------------------
+// start hbase master and region server
+// explicitly set JAVA_HOME in hbase configuration
+sudo /usr/lib/hbase/bin/hbase-daemon.sh start master
+sudo /usr/lib/hbase/bin/hbase-daemon.sh start regionserver
+// open hbase shell and check the salesdata table
+hbase shell
+> scan 'salesdata'
+
+// delete and create topic salestopic
+kafka-topics --zookeeper localhost:2181 -delete --topic salestopic
+
+kafka-topics --zookeeper localhost:2181  --create --topic salestopic  --replication-factor 1 --partitions 1
+
+// sbt assembly and run demokafkaproducer
+java -cp target/scala-2.11/Spark2Project-assembly-0.1-SNAPSHOT.jar com.skk.training.kafkastreaming.moKafkaProducer
+
+// run the spark streaming consumer
+// need the conf argument in spark-submit to make this guy work
+-- in a pseudo distributed environment should work only with extra driver class path
+spark-submit --conf "spark.driver.extraClassPath=/home/cloudera/.ivy2/cache/org.apache.kafka/kafka-clients/jars/kafka-clients-1.1.0.jar" --conf "spark.executor.extraClassPath=/home/cloudera/.ivy2/cache/org.apache.kafka/kafka-ients/jars/kafka-clients-1.1.0.jar"  --class com.skk.training.kafkastreaming.RealTimeSalesIngestion target/scala-2.11/Spark2Project-assembly-0.1-SNAPSHOT.jar
+
+// run the visualization alongside 
+java -cp target/scala-2.11/Spark2Project-assembly-0.1-SNAPSHOT.jar com.skk.training.visualization.VisualizeData
+
+// to shuffle data and put in shufcm directory under findata/cm
+// go to ~/findata/cm and the line below - the sed 1d ensures we leave the header out
+for x in ./cm*;do sed 1d $x | shuf -n 20 >shufcm/$(basename $x);done
+
+
+// kafkaStockStreamAggPlain notes
+// delete and create nsecmdpart kafka topic, remove the checkpoint directory
+// in package.scala - we can get starting and ending offsets in the OnQueryProgress callback
+// if we want o we can store this line in a db
+// and in the scala file we can create a string and give that as an argument for startingOffsets
+// check the checkpoint directory ~/stocksaggplainckpt to see how it keeps track
+
+
+// to create a shuffled file of f and o having good number of entries for both futstk and optstk and idxes
+// went to findata/fo
+// created directory shuffo
+// first sent all futstk and futidx to it with this
+// createed fosimorders in shuffo directory - fo simulated orders
+for x in ./fo*
+do
+	grep -P 'FUTSTK|FUTIDX' $x >> foshuffo/fosimorders.csv
+done
+
+// then shuffled it
+shuf fosimorders.csv > fosimodersf.csv
+
+// then grep for OPTSTK or OPTIDX 
+// shuffle and send 200 from each to the file
+for x in ./fo*
+do
+	grep -P 'OPTSTK|OPTIDX' $x | shuf -n 200 >> foshuffo/fosimordersf.csv
+done
+
+// to pipe from this to nsefod topic
+while [ $x -lt 1000 ]
+do 
+    sed -n "$x,$(($x + 20))p" fosimordersf.csv | kafka-console-producer --broker-list localhost:9092 --topic nsefod
+    x=$(($x + 20))
+    sleep 2
+done
+
+// kafka read and write stream in one statement
+
+spark.readStream.format("kafka").option("kafka.bootstrap.servers", "localhost:9092").option("subscribe", "nsefod").option("spark.sql.shuffle.partitions", "2").load().select("value").as[String].map(x => x.split(",")).map(x => (x(1).toString, x(13).toDouble)).toDF("name", "vlm").groupBy($"name").agg(sum($"vlm").as("tvlm")).writeStream.format("console").outputMode("complete").start.awaitTermination
+
+// spark-shell with spark sql streaming kafka
+spark-shell --jars /home/cloudera/.ivy2/cache/org.apache.spark/spark-sql-kafka-0-10_2.11/jars/spark-sql-kafka-0-10_2.11-2.3.0.ja
+
+// stocks map groups with state notes
+case classes StockEvent and StockEVentT are in package.scala
+Only difference between the two that the T groups by a tuple fo (stockname, instrument) (String, String) - so if we'd like to track state by whatever combination of keys it is possible
+
+same is the difference between StockUpdate and StockUpdateT - where id is String and (String, String) respectively
+
+to update, multiple fields - keep in mind that we have a stream and if we call an action of it the lazy val gets evaluated and subsequent evals yield nothing - took about an hour to figure out why totval getting populated from a sum of vlakh - value in lakhs kept on showing 0.0 - then when evaluated this first, totoi - sum of chgoi showed 0
+
+if using event time out then cannot set timoutduration - it will throw an error
+
+// see kafka log segments
+It will show you the offset, checksum, magic byte, size, and compression codec for each message
+sudo /usr/bin/kafka-run-class kafka.tools.DumpLogSegments --files /var/lib/kafka/nsecmd-0/00000000000000000000.log
