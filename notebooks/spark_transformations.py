@@ -6,9 +6,9 @@
 
 import os
 import sys
-os.environ['SPARK_HOME']='/home/cloudera/spark230hadoop26'
+os.environ['SPARK_HOME']='/usr/lib/spark'
 os.environ['PYLIB']=os.environ['SPARK_HOME']+'/python/lib'
-sys.path.insert(0,os.environ['PYLIB']+'/py4j-0.10.6-src.zip')
+sys.path.insert(0,os.environ['PYLIB']+'/py4j-0.10.7-src.zip')
 sys.path.insert(1,os.environ['PYLIB']+'/pyspark.zip')
 
 
