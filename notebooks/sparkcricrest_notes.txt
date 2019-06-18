@@ -1,0 +1,10 @@
+To have the spark rest api example working
+create a directory and put cricketers.json in that directory
+install npm and in that directory run npm init
+then install json-server using the following command
+npm install json-server --save
+edit the package.json file to include the following line in scripts
+jsons: "json-server --watch cricketers.json --port 5000"
+then issue:
+npm run jsons
+so we should have the players stats available over localhost:5000 and use requests to get the data from the simulated rest api that's created
