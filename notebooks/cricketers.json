@@ -1,0 +1,74 @@
+{
+    "players": [{
+        "ln": "Tendulkar",
+        "fn": "Sachin",
+        "stats": {
+            "odi": {
+                "matches": 463,
+                "innings": 452,
+                "notout": 41,
+                "runs": 18426,
+                "hs": 200,
+                "avg": 44.83,
+                "centuries": 49,
+                "doublehoundreds": 1,
+                "fifties": 96,
+                "fours": 2016,
+                "sixes": 195
+            },
+            "test": {
+                "matches": 200,
+                "innings": 329,
+                "notout": 33,
+                "runs": 15921,
+                "hs": 248,
+                "avg": 53.79,
+                "centuries": 51,
+                "doublehoundreds": 6,
+                "fifties": 68,
+                "fours": 2058,
+                "sixes": 69
+            },
+            "fansaus": ["Bill Lawry", "Ian Chappell", "Mark Taylor"],
+            "faneng": ["Tony Greig", "Geoofrey Boycott", "Nasser Hssain"],
+            "fanwb": ["Nichael Holding", "Tony Cozier"],
+            "fanind": ["Sunil Gavaskar", "Ravi Shastri", "Sanja Manjarekar"]
+        }
+    },
+    {
+        "ln": "Kohli",
+        "fn": "Virat",
+        "stats": {
+            "odi": {
+                "matches": 227,
+                "innings": 219,
+                "notout": 37,
+                "runs": 10843,
+                "hs": 183,
+                "avg": 59.58,
+                "centuries": 41,
+                "doublehoundreds": 0,
+                "fifties": 49,
+                "fours": 1019,
+                "sixes": 117
+            },
+            "test": {
+                "matches": 77,
+                "innings": 131,
+                "notout": 8,
+                "runs": 6613,
+                "hs": 243,
+                "avg": 53.76,
+                "centuries": 25,
+                "doublehoundreds": 6,
+                "fifties": 20,
+                "fours": 731,
+                "sixes": 19
+            },
+            "fansaus": ["Michael Clarke", "Ian Chappell", "Mark Taylor", "David Boon"],
+            "faneng": ["Ian Botham", "Geoofrey Boycott", "Nasser Hssain"],
+            "fanwb": ["Nichael Holding", "Tony Cozier"],
+            "fanind": ["Sunil Gavaskar", "Ajit Agarkar", "Sanjay Manjarekar"]
+        }
+    }]
+}
