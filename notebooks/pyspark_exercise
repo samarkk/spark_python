@@ -1,0 +1,9 @@
+1. create a directory cmoct18 in hdfs and copy cash market oct 2018 files to it.
+2. create a directory fooct18 in hdfs and copy futres market oct 2018 files to it.
+3. in spark create a dataframe named cmoct from the cmoct18 directory - while reading infer the schema and provide for the first line of the files being a header - drop the extra column created due to trailing comma in the source files
+4.  create a dataframe named fooct from the fooct18 directory, infer schema, provide for header and remove the extra column
+5. from the cmoct dataframe compute by symbol the sum of TOTTRDQTY, TOTTRDVAL and save this dataframe as a table named cmsymsum in hive
+from the fooct data for instruments FUTSTK compute by symbol the sum of contracts, VAL_IN_LAKH fields and save the computed datafame as a table named fmsymsum in hive
+6. join the two datafames cmsymsum and fmsymsum on the symbol field - save the dataframe as table named cmbdf in hive
+7. do a word count of shakespeare.txt and find the sum of counts of the ten most frequent words with a length > 10
+8. create an application and deploy it on yarn to carry out task number 7 and save the command used to deploy the application in /home/samar/yarnapp.txt
