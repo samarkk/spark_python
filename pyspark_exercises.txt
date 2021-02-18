@@ -1,10 +1,17 @@
-1. Find all words in shakespare.txt that have a length greater than ten. Find out the count for each of these words by creating a rdd which will have elements such as ('somelongword',23) etc where 23 is the number of somelongword present in the data. Find out the sum of the product of word length and word count for these pairs. Provide the code and the final answer
-2. Save the first ten thousand lines of apachelogs in a file apachelogs10k. Copy this file in HDFS. Find out the average request size per host for the days present in this file. You will have to compute the number of hosts by day and the total request size by day and divide the total request size by number of hosts to come to this figure
+1. Find all words in shakespare.txt that have a length greater than ten. 
+Find out the count for each of these words by creating a rdd which will have elements such as ('somelongword',23) etc 
+where 23 is the number of somelongword present in the data. Find out the sum of the product of word length and word count for these pairs.
+Provide the code and the final answer
+2. Save the first ten thousand lines of apachelogs in a file apachelogs10k. 
+Copy this file in HDFS. Find out the average request size per host for the days present in this file. 
+You will have to compute the number of hosts by day and the total request size by day and divide the total request size by number of hosts to come to this figure
 3-6 - for these exercises use the following list as the data 
 ['INFY,2018-01-01,100,100071', 'INFY,2018-01-02,120,107130', 'INFY,2018-01-03,110,124175', 'INFY,2018-01-02,115,109175', 'BHEL,2018-01-01,4005,21000', 'BHEL,2018-01-02,5240,22015', 'BHEL,2018-01-03,5287,23450', 'BHEL,2018-01-04,6480,28156']
 
 3. Creae a RDD from the above list and map it to tuple of 4 by splitting each element on comma
-4. Define a schema to represent the dataframe that you will create from the rdd. Give the schema fields - stock of type string, date of type string, qty of type int, vlu of type double. Use the rdd and schema to create a dataframe
-5.Create a temporary table|view for this dataframe. And find the percentile for quantity traded (qty) by stock for this table, dataframe
+4. Define a schema to represent the dataframe that you will create from the rdd. 
+Give the schema fields - stock of type string, date of type string, qty of type int, vlu of type double. 
+Use the rdd and schema to create a dataframe
+5.Create a temporary table|view for this dataframe. 
+And find the percentile for quantity traded (qty) by stock for this table, dataframe
 6. use arrow pandas_udf to find sum and average of vlu for the above table 
-
