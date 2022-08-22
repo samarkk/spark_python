@@ -1,0 +1,12 @@
+in /etc/ssh/sshd_config enable PasswordAuthentication
+Uncomment PasswordAuthentication=yes
+and comment PasswordAuthentication=no
+start jupyter-notebook
+jupyter-notebook --no-browser --port=9999
+enable password for vagrant
+sudo passwd vagrant
+on the local machine do
+ssh -L 9090:localhost:9999 vagrant@192.168.56.2
+go to localhost:9090
+will ask for token to log in
+copy from where jupyter notebook was started and we should be able to access the jupyter notebook
