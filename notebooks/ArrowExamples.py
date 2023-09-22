@@ -1,3 +1,12 @@
+'''
+Apache Arrow is a cross-language development platform for in-memory data. 
+It specifies a standardized language-independent columnar memory format for flat and hierarchical data, 
+organized for efficient analytic operations on modern hardware
+
+In simple words, It facilitates communication between many components, 
+for example, reading a parquet file with Python (pandas) and transforming to a Spark dataframe, 
+Falcon Data Visualization or Cassandra without worrying about conversion
+'''
 # install pyarrow
 # conda install -c conda-forge pyarrow
 # or
@@ -17,12 +26,14 @@ sc.setLogLevel('ERROR')
 print(spark.version)
 
 '''
+Apache Arrow is an in-memory columnar data format used in Apache Spark to efficiently transfer data between JVM and Python processes
+
 Arrow is available as an optimization when converting a Spark DataFrame to a Pandas DataFrame using the call DataFrame.toPandas() 
 and when creating a Spark DataFrame from a Pandas DataFrame with SparkSession.createDataFrame(). 
 To use Arrow when executing these calls, users need to first set the Spark configuration 
 spark.sql.execution.arrow.pyspark.enabled to true. This is disabled by default
 
-n addition, optimizations enabled by spark.sql.execution.arrow.pyspark.enabled 
+In addition, optimizations enabled by spark.sql.execution.arrow.pyspark.enabled 
 could fallback automatically to non-Arrow optimization implementation if an error occurs 
 before the actual computation within Spark. 
 This can be controlled by spark.sql.execution.arrow.pyspark.fallback.enabled.
@@ -123,7 +134,23 @@ w = Window \
 df4SerScalar.withColumn('mean_v', mean_udf(df4SerScalar['v']).over(w)).show()
 
 #Pandas Function APIs
+'''
+pandas function APIs enable us to directly apply a Python native function 
+that takes and outputs pandas instances to a PySpark DataFrame. 
+Similar to pandas user-defined functions, function APIs also use Apache Arrow to transfer data 
+and pandas to work with the data; however, Python type hints are optional in pandas function APIs
+'''
 #Grouped Map
+...
+You transform your grouped data using groupBy().applyInPandas() to implement the “split-apply-combine” pattern. 
+Split-apply-combine consists of three steps:
+
+Split the data into groups by using DataFrame.groupBy
+Apply a function on each group. The input and output of the function are both pandas.DataFrame
+The input data contains all the rows and columns for each group.
+Combine the results into a new DataFrame
+'''                                    
+                                                                                                                                                                                                                                                                                    ''
 
 #To use groupBy().applyInPandas(), the user needs to define the following:
 
