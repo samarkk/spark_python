@@ -44,6 +44,10 @@ result_pdf = df.select("*").toPandas()
 # except MapType, ArrayType of TimestampType, and nested StructType.
 
 # Pandas UDF - Vecotrized UDFs
+# caan be defined using Python type hints
+# the type hint should use pandas.Series in all cases 
+# but there is one variant that pandas.DataFrame should be used for its input or output type hint instead 
+# when the input or output column is of StructType
 @pandas_udf("col1 string, col2 long")
 def func(s1: pd.Series, s2: pd.Series, s3: pd.DataFrame) -> pd.DataFrame:
     s3['col2'] = s1 + s2.str.len()
@@ -55,6 +59,10 @@ df = spark.createDataFrame(
     "long_col long, string_col string, struct_col struct<col1:string>")
 
 df.printSchema()
+
+df.select(col("long_col"), col("string_col"), col("struct_col"), 
+          func("long_col", "string_col", "struct_col").alias("afc")). \
+select("long_col", "string_col", "afc.col1", "afc.col2").show(2, False)
 
 df.select(func("long_col", "string_col", "struct_col")).printSchema()
 
