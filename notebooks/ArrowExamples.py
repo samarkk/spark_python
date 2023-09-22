@@ -1,3 +1,7 @@
+# install pyarrow
+# conda install -c conda-forge pyarrow
+# or
+# pip install pyarrow
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import LongType
