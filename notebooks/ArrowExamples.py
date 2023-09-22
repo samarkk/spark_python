@@ -16,7 +16,12 @@ sc = spark.sparkContext
 sc.setLogLevel('ERROR')
 print(spark.version)
 
-spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+'''
+Arrow is available as an optimization when converting a Spark DataFrame to a Pandas DataFrame using the call DataFrame.toPandas() 
+and when creating a Spark DataFrame from a Pandas DataFrame with SparkSession.createDataFrame(). 
+To use Arrow when executing these calls, users need to first set the Spark configuration 
+spark.sql.execution.arrow.pyspark.enabled to true. This is disabled by default
+'''
 
 # Enable Arrow-based columnar data transfers
 spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
